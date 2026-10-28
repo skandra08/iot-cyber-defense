@@ -21,7 +21,6 @@
       "seq_replay": 20
     },
     "spoof-subtle": {
-      "seq_replay": 1,
       "zscore": 10,
       "seq_gap": 5
     }

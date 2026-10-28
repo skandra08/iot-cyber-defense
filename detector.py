@@ -24,6 +24,7 @@ from common import connect, make_client
 LIMITS = {"ph": (4.0, 9.0), "ec": (0.5, 4.0), "temp_c": (10.0, 35.0), "flow_lpm": (0.0, 10.0)}
 WINDOW, MIN_SAMPLES, Z_LIMIT = 40, 15, 5.0
 MAX_SEQ_GAP, MAX_CLOCK_SKEW = 5, 5.0
+MAX_PAYLOAD_BYTES = 4096
 
 
 class Detector:
@@ -37,11 +38,16 @@ class Detector:
         if not isinstance(msg, dict) or not isinstance(msg.get("device_id"), str) or not msg["device_id"]:
             return False
         seq = msg.get("seq")
-        if not isinstance(seq, int) or isinstance(seq, bool):
+        if not isinstance(seq, int) or isinstance(seq, bool) or not 0 <= seq < 2**53:
             return False
         for key in ("ts", *LIMITS):
             val = msg.get(key)
-            if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+            if isinstance(val, bool) or not isinstance(val, (int, float)):
+                return False
+            try:
+                if not math.isfinite(val):
+                    return False
+            except OverflowError:  # huge ints can't convert to float
                 return False
         return True
 
@@ -104,11 +110,13 @@ def main():
     def on_message(client, userdata, message):
         # Never let a bad payload raise: an exception here would stop monitoring.
         try:
+            if len(message.payload) > MAX_PAYLOAD_BYTES:
+                raise ValueError("payload too large")
             msg = json.loads(message.payload, parse_constant=reject_constant)
             topic_device = message.topic.split("/")[1]
             alerts = det.check(msg, topic_device=topic_device)
             gt = msg.get("_gt") if isinstance(msg, dict) else None
-        except (ValueError, UnicodeDecodeError, IndexError):
+        except Exception:  # fail safe: any bad payload is an alert, never a crash
             msg, alerts, gt = {"raw": message.payload[:200].decode("utf-8", "replace")}, ["malformed"], None
         if not isinstance(gt, str):
             gt = "unknown"

@@ -59,7 +59,7 @@ def test_type_confusion_and_nan_are_malformed():
     det = Detector()
     warm(det)
     bad = [msg(21, ph=float("nan")), msg(21, ts=float("inf")), {**msg(21), "seq": True}, {**msg(21), "seq": 21.5},
-           msg(21, ph="6.0"), msg(21, device_id=["pump-01"]), ["not", "a", "dict"], None]
+           msg(21, ph="6.0"), msg(21, ph=10**400), {**msg(21), "seq": 10**400}, msg(21, device_id=["pump-01"]), ["not", "a", "dict"], None]
     for m in bad:
         assert det.check(m, NOW) == ["malformed"], m
     assert det.check(msg(21), NOW) == []  # state untouched by rejected input
