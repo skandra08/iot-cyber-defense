@@ -1,5 +1,5 @@
 
-== PLAIN ==  legit msgs 267, false positives 1
+== PLAIN ==  legit msgs 267, false positives 0
   attack                            connected  sent  delivered  detected
   replay                            True       20    20         20
   spoof-blatant                     True       10    10         10

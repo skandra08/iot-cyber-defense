@@ -6,12 +6,15 @@ Checks (per device):
   seq_gap       seq jumps far ahead of the last accepted seq (injection)
   stale_ts      timestamp too far from the detector's clock
   zscore        value > Z_LIMIT sigmas from the device's rolling baseline
+  id_mismatch   payload device_id differs from the (broker-authenticated) topic
+  malformed     wrong schema/types, NaN/Infinity, non-JSON payload
 Flagged messages never update the baseline or seq state, so an attacker can't
 poison the model by injecting a few messages. The '_gt' ground-truth label in
 payloads is used only for scoring, never for decisions.
 """
 import argparse
 import json
+import math
 import statistics
 import time
 from collections import Counter, defaultdict, deque
@@ -28,13 +31,34 @@ class Detector:
         self.last_seq = {}
         self.history = defaultdict(lambda: defaultdict(lambda: deque(maxlen=WINDOW)))
 
-    def check(self, msg, now=None):
-        """Return a list of alert names (empty list = message accepted)."""
+    @staticmethod
+    def _well_formed(msg):
+        """Strict schema: dict, int seq, finite real-number ts and sensor values."""
+        if not isinstance(msg, dict) or not isinstance(msg.get("device_id"), str) or not msg["device_id"]:
+            return False
+        seq = msg.get("seq")
+        if not isinstance(seq, int) or isinstance(seq, bool):
+            return False
+        for key in ("ts", *LIMITS):
+            val = msg.get(key)
+            if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+                return False
+        return True
+
+    def check(self, msg, now=None, topic_device=None):
+        """Return a list of alert names (empty list = message accepted).
+
+        topic_device is the device id from the MQTT topic, which the broker
+        authenticates (mTLS + ACL); the payload's device_id must match it.
+        """
         now = time.time() if now is None else now
-        dev = msg.get("device_id")
-        alerts = []
-        if not dev or any(k not in msg for k in (*LIMITS, "seq", "ts")):
+        if not self._well_formed(msg):
             return ["malformed"]
+        dev = msg["device_id"]
+        alerts = []
+        if topic_device is not None and dev != topic_device:
+            # state is keyed on the authenticated topic identity, not the payload claim
+            return ["id_mismatch"]
 
         for key, (lo, hi) in LIMITS.items():
             if not lo <= msg[key] <= hi:
@@ -74,10 +98,20 @@ def main():
     stats = {"seen": Counter(), "flagged": Counter(), "alert_types": defaultdict(Counter)}
     alert_log = open(args.out.replace(".json", ".alerts.jsonl"), "w")
 
+    def reject_constant(name):
+        raise ValueError(f"non-finite JSON constant {name}")
+
     def on_message(client, userdata, message):
-        msg = json.loads(message.payload)
-        gt = msg.get("_gt", "unknown")
-        alerts = det.check(msg)
+        # Never let a bad payload raise: an exception here would stop monitoring.
+        try:
+            msg = json.loads(message.payload, parse_constant=reject_constant)
+            topic_device = message.topic.split("/")[1]
+            alerts = det.check(msg, topic_device=topic_device)
+            gt = msg.get("_gt") if isinstance(msg, dict) else None
+        except (ValueError, UnicodeDecodeError, IndexError):
+            msg, alerts, gt = {"raw": message.payload[:200].decode("utf-8", "replace")}, ["malformed"], None
+        if not isinstance(gt, str):
+            gt = "unknown"
         stats["seen"][gt] += 1
         if alerts:
             stats["flagged"][gt] += 1

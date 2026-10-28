@@ -55,6 +55,24 @@ def test_malformed():
     assert Detector().check({"device_id": "x"}, NOW) == ["malformed"]
 
 
+def test_type_confusion_and_nan_are_malformed():
+    det = Detector()
+    warm(det)
+    bad = [msg(21, ph=float("nan")), msg(21, ts=float("inf")), {**msg(21), "seq": True}, {**msg(21), "seq": 21.5},
+           msg(21, ph="6.0"), msg(21, device_id=["pump-01"]), ["not", "a", "dict"], None]
+    for m in bad:
+        assert det.check(m, NOW) == ["malformed"], m
+    assert det.check(msg(21), NOW) == []  # state untouched by rejected input
+
+
+def test_payload_identity_must_match_topic():
+    det = Detector()
+    warm(det)
+    forged = msg(21, device_id="pump-02")
+    assert det.check(forged, NOW, topic_device="pump-01") == ["id_mismatch"]
+    assert det.check(msg(21), NOW, topic_device="pump-01") == []
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -8,8 +8,7 @@
   "flagged": {
     "spoof-blatant": 10,
     "replay": 20,
-    "spoof-subtle": 10,
-    "legit": 1
+    "spoof-subtle": 10
   },
   "alert_types": {
     "spoof-blatant": {
@@ -24,9 +23,6 @@
     "spoof-subtle": {
       "zscore": 10,
       "seq_gap": 5
-    },
-    "legit": {
-      "zscore": 1
     }
   }
 }
