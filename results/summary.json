@@ -1,0 +1,163 @@
+{
+  "plain": {
+    "seen": {
+      "legit": 267,
+      "spoof-blatant": 10,
+      "replay": 20,
+      "spoof-subtle": 10
+    },
+    "flagged": {
+      "spoof-blatant": 10,
+      "replay": 20,
+      "spoof-subtle": 10,
+      "legit": 1
+    },
+    "alert_types": {
+      "spoof-blatant": {
+        "out_of_range": 10,
+        "seq_replay": 10,
+        "zscore": 10
+      },
+      "replay": {
+        "stale_ts": 20,
+        "seq_replay": 20
+      },
+      "spoof-subtle": {
+        "zscore": 10,
+        "seq_gap": 5
+      },
+      "legit": {
+        "zscore": 1
+      }
+    },
+    "attacks": [
+      {
+        "attack": "replay",
+        "connected": true,
+        "sniffed": 175,
+        "sent": 20
+      },
+      {
+        "attack": "spoof-blatant",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-02",
+        "cert_as": null
+      },
+      {
+        "attack": "spoof-subtle",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-02",
+        "cert_as": null
+      }
+    ]
+  },
+  "tls": {
+    "seen": {
+      "legit": 267,
+      "spoof-blatant": 10,
+      "replay": 20,
+      "spoof-subtle": 10
+    },
+    "flagged": {
+      "spoof-blatant": 10,
+      "replay": 20,
+      "spoof-subtle": 10
+    },
+    "alert_types": {
+      "spoof-blatant": {
+        "out_of_range": 10,
+        "seq_replay": 10,
+        "zscore": 10
+      },
+      "replay": {
+        "stale_ts": 20,
+        "seq_replay": 20
+      },
+      "spoof-subtle": {
+        "zscore": 10,
+        "seq_gap": 5
+      }
+    },
+    "attacks": [
+      {
+        "attack": "replay",
+        "connected": true,
+        "sniffed": 175,
+        "sent": 20
+      },
+      {
+        "attack": "spoof-blatant",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-02",
+        "cert_as": null
+      },
+      {
+        "attack": "spoof-subtle",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-02",
+        "cert_as": null
+      }
+    ]
+  },
+  "mtls": {
+    "seen": {
+      "legit": 267,
+      "spoof-blatant_stolen_own_topic": 10
+    },
+    "flagged": {
+      "spoof-blatant_stolen_own_topic": 10
+    },
+    "alert_types": {
+      "spoof-blatant_stolen_own_topic": {
+        "out_of_range": 10,
+        "seq_replay": 10,
+        "zscore": 10
+      }
+    },
+    "attacks": [
+      {
+        "attack": "replay",
+        "connected": false,
+        "reason": "no CONNACK (TLS handshake rejected or timed out)",
+        "sniffed": 0,
+        "sent": 0
+      },
+      {
+        "attack": "spoof-blatant",
+        "connected": false,
+        "reason": "no CONNACK (TLS handshake rejected or timed out)",
+        "sent": 0
+      },
+      {
+        "attack": "spoof-subtle",
+        "connected": false,
+        "reason": "no CONNACK (TLS handshake rejected or timed out)",
+        "sent": 0
+      },
+      {
+        "attack": "spoof-blatant_roguecert",
+        "connected": false,
+        "reason": "no CONNACK (TLS handshake rejected or timed out)",
+        "sent": 0
+      },
+      {
+        "attack": "spoof-blatant_stolen_own_topic",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-01",
+        "cert_as": "pump-01"
+      },
+      {
+        "attack": "spoof-blatant_stolen_other_topic",
+        "connected": true,
+        "sent": 10,
+        "target": "pump-02",
+        "cert_as": "pump-01"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "seen": {
+    "legit": 267,
+    "spoof-blatant_stolen_own_topic": 10
+  },
+  "flagged": {
+    "spoof-blatant_stolen_own_topic": 10
+  },
+  "alert_types": {
+    "spoof-blatant_stolen_own_topic": {
+      "out_of_range": 10,
+      "seq_replay": 10,
+      "zscore": 10
+    }
+  }
+}

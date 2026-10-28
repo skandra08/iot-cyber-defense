@@ -1,0 +1,28 @@
+{
+  "seen": {
+    "legit": 267,
+    "spoof-blatant": 10,
+    "replay": 20,
+    "spoof-subtle": 10
+  },
+  "flagged": {
+    "spoof-blatant": 10,
+    "replay": 20,
+    "spoof-subtle": 10
+  },
+  "alert_types": {
+    "spoof-blatant": {
+      "out_of_range": 10,
+      "seq_replay": 10,
+      "zscore": 10
+    },
+    "replay": {
+      "stale_ts": 20,
+      "seq_replay": 20
+    },
+    "spoof-subtle": {
+      "zscore": 10,
+      "seq_gap": 5
+    }
+  }
+}

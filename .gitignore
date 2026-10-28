@@ -1,0 +1,5 @@
+.venv/
+certs/*.key
+certs/*.crt
+broker/mosquitto.conf
+__pycache__/
